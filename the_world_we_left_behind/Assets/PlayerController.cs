@@ -4,65 +4,40 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-
-    public GameObject playerObj;
-    public Rigidbody rb;
-
     public float moveSpeed;
-
-    public bool grounded;
+    public float jumpForce;
+    public float gravityScale;
+    public CharacterController controller;  // Store the CharacterController component
+    private Vector2 moveDirection;          // only used a two dimensional vector here because i only need to move the player in the x and y axis
 
     // Start is called before the first frame update
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
-
+        controller = GetComponent<CharacterController>(); // Get the CharacterController component
     }
 
     // Update is called once per frame
     void Update()
     {
-        // controlled via the WAD keys
-        float xInput = Input.GetAxisRaw("Horizontal");
-        float yInput = Input.GetAxisRaw("Vertical");
 
-        // left right and jump
-        if (Mathf.Abs( rb.velocity.x) < 8 ) 
+        moveDirection = new Vector2(Input.GetAxis("Horizontal") * (moveSpeed / 2), moveDirection.y);  // Get the horizontal input and move the player in the air
+        if (controller.isGrounded)  // Check if the player is on the ground
         {
-            rb.AddRelativeForce(Vector3.right * xInput * Time.deltaTime * moveSpeed);
-            
-        }
-        
-        if (Input.GetButtonDown("Jump") && grounded == true)
-        {
-           rb.AddRelativeForce(Vector3.up * 1500);
+            moveDirection = new Vector2(Input.GetAxis("Horizontal") * moveSpeed, moveDirection.y);  // Get the horizontal input and move the player
+
+            if (Input.GetButtonDown("Jump"))    // Check if the player pressed the jump button
+            {
+                moveDirection.y = jumpForce;    // Apply the jump force to the player
+
+            }
         }
 
-        // jump once per touch of the ground
-        if (!grounded)
-        {
-            rb.AddRelativeForce(Vector3.down * 1500 * Time.deltaTime);
-        }
-        
-        // Rotate the player to face the direction of movement
-        RotatePlayer(xInput);
+        moveDirection.y = moveDirection.y + (Physics.gravity.y * Time.deltaTime * gravityScale);    // Apply gravity to the player
+        controller.Move(moveDirection * Time.deltaTime);    // Move the player
+        RotatePlayer(Input.GetAxis("Horizontal"));    // Rotate the player
     }
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        grounded = true;
-    }
-
-    private void OnCollisionExit(Collision collision)
-    {
-        grounded = false;
-    }
-
-    private void OnCollisionStay(Collision collision)
-    {
-        grounded = true;
-    }
-
+    // Rotate the player based on input
     private void RotatePlayer(float xInput)
     {
         if (xInput != 0)
@@ -72,7 +47,7 @@ public class PlayerController : MonoBehaviour
             Quaternion targetRotation = Quaternion.Euler(0, targetYRotation, 0);
 
             // Smoothly rotate the player to the target rotation
-            playerObj.transform.rotation = Quaternion.Slerp(playerObj.transform.rotation, targetRotation, Time.deltaTime * 10);
+            controller.transform.rotation = Quaternion.Slerp(controller.transform.rotation, targetRotation, Time.deltaTime * 10);
         }
     }
 }
