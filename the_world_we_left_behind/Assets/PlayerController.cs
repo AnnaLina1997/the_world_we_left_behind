@@ -43,7 +43,7 @@ public class PlayerController : MonoBehaviour
         if (xInput != 0)
         {
             // Determine the direction to face based on input
-            float targetYRotation = xInput > 0 ? 0 : 180;
+            float targetYRotation = xInput > 0 ? 0 : -180;
             Quaternion targetRotation = Quaternion.Euler(0, targetYRotation, 0);
 
             // Smoothly rotate the player to the target rotation
